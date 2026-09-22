@@ -8,20 +8,27 @@
 body
 {
     font-family: sans-serif;
+    margin: 0;
+    overflow: hidden;
+    touch-action: none;
 }
 
 #grid
 {
     display:grid;
-    grid-template-columns:repeat(12,30px);
-    width:360px;
+    width:95vw;
+    height:95vw;
+    max-width:600px;
+    max-height:600px;
+    margin:auto;
+    grid-template-columns:repeat(12,1fr);
+    touch-action: none;
 }
 
 .cell
 {
-    width:30px;
-    height:30px;
     border:1px solid #cccccc;
+    aspect-ratio:1;
     background:white;
     box-sizing:border-box;
 }
@@ -64,6 +71,14 @@ let cells = [];
 
 const grid =
     document.getElementById("grid");
+
+grid.addEventListener(
+    "touchstart",
+    handleTouch);
+
+grid.addEventListener(
+    "touchmove",
+    handleTouch);
 
 for(let y = 0; y < SIZE; y++)
 {
@@ -115,6 +130,25 @@ function fillCell(div)
     cells[y][x] = 1;
 
     div.classList.add("filled");
+}
+
+function handleTouch(event)
+{
+    event.preventDefault();
+
+    const touch =
+        event.touches[0];
+
+    const element =
+        document.elementFromPoint(
+            touch.clientX,
+            touch.clientY);
+
+    if(element &&
+       element.classList.contains("cell"))
+    {
+        fillCell(element);
+    }
 }
 
 function clearGrid()
