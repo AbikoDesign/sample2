@@ -1,18 +1,232 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Number Storage App</title>
+<meta charset="utf-8">
+<title>Number Recognition</title>
+
+<style>
+body
+{
+    font-family: sans-serif;
+}
+
+#grid
+{
+    display:grid;
+    grid-template-columns:repeat(12,30px);
+    width:360px;
+}
+
+.cell
+{
+    width:30px;
+    height:30px;
+    border:1px solid #cccccc;
+    background:white;
+    box-sizing:border-box;
+}
+
+.filled
+{
+    background:black;
+}
+
+#result
+{
+    margin-top:20px;
+    font-size:32px;
+}
+</style>
 </head>
+
 <body>
-    <h1>Number Storage App</h1>
-    <input type="number" id="numberInput" placeholder="Enter a number">
-    <button onclick="saveNumber()">Save Number</button>
-    <button onclick="getNumber()">Get Number</button>
-    <p id="output"></p>
-    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
-    <script src="app.js"></script>
+
+<h2>Draw a Number</h2>
+
+<div id="grid"></div>
+
+<br>
+
+<button onclick="recognize()">Recognize</button>
+<button onclick="clearGrid()">Clear</button>
+
+<div id="result">?</div>
+
+<script>
+
+const SIZE = 12;
+
+let drawing = false;
+
+let network = null;
+
+let cells = [];
+
+const grid =
+    document.getElementById("grid");
+
+for(let y = 0; y < SIZE; y++)
+{
+    cells[y] = [];
+
+    for(let x = 0; x < SIZE; x++)
+    {
+        cells[y][x] = 0;
+
+        const div =
+            document.createElement("div");
+
+        div.className = "cell";
+
+        div.dataset.x = x;
+        div.dataset.y = y;
+
+        div.addEventListener(
+            "mousedown",
+            () =>
+            {
+                drawing = true;
+                fillCell(div);
+            });
+
+        div.addEventListener(
+            "mouseenter",
+            () =>
+            {
+                if(drawing)
+                {
+                    fillCell(div);
+                }
+            });
+
+        grid.appendChild(div);
+    }
+}
+
+document.addEventListener(
+    "mouseup",
+    () => drawing = false);
+
+function fillCell(div)
+{
+    const x = Number(div.dataset.x);
+    const y = Number(div.dataset.y);
+
+    cells[y][x] = 1;
+
+    div.classList.add("filled");
+}
+
+function clearGrid()
+{
+    for(let y = 0; y < SIZE; y++)
+    {
+        for(let x = 0; x < SIZE; x++)
+        {
+            cells[y][x] = 0;
+        }
+    }
+
+    document
+    .querySelectorAll(".cell")
+    .forEach(
+        c => c.classList.remove("filled"));
+}
+
+function sigmoid(x)
+{
+    return 1.0 /
+        (1.0 + Math.exp(-x));
+}
+
+async function loadNetwork()
+{
+    const response =
+        await fetch("weights.json");
+
+    network =
+        await response.json();
+
+    console.log("Network loaded");
+}
+
+function recognize()
+{
+    if(network == null)
+    {
+        alert("Network not loaded");
+        return;
+    }
+
+    const input = [];
+
+    for(let y = 0; y < 12; y++)
+    {
+        for(let x = 0; x < 12; x++)
+        {
+            input.push(cells[y][x]);
+        }
+    }
+
+    const hidden =
+        new Array(30);
+
+    const output =
+        new Array(10);
+
+    for(let h = 0; h < 30; h++)
+    {
+        let sum =
+            network.HiddenBiases[h];
+
+        for(let i = 0; i < 144; i++)
+        {
+            sum +=
+                input[i]
+                *
+                network.WeightsInputHidden[i][h];
+        }
+
+        hidden[h] =
+            sigmoid(sum);
+    }
+
+    for(let o = 0; o < 10; o++)
+    {
+        let sum =
+            network.OutputBiases[o];
+
+        for(let h = 0; h < 30; h++)
+        {
+            sum +=
+                hidden[h]
+                *
+                network.WeightsHiddenOutput[h][o];
+        }
+
+        output[o] =
+            sigmoid(sum);
+    }
+
+    let best = 0;
+
+    for(let o = 1; o < 10; o++)
+    {
+        if(output[o] > output[best])
+        {
+            best = o;
+        }
+    }
+
+    document
+        .getElementById("result")
+        .innerText =
+        "Prediction: " + best;
+}
+
+loadNetwork();
+
+</script>
+
 </body>
 </html>
