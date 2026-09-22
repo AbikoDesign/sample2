@@ -13,6 +13,12 @@ body
     touch-action: none;
 }
 
+h2
+{
+    font-size: 48px;
+    text-align: center;
+}
+
 #grid
 {
     display:grid;
@@ -38,17 +44,25 @@ body
     background:black;
 }
 
+button
+{
+    font-size: 48px;
+    padding: 15px 30px;
+    margin: 10px;
+}
+
 #result
 {
     margin-top:20px;
-    font-size:32px;
+    text-align:center;
+    font-size:48px;
 }
 </style>
 </head>
 
 <body>
-text-align: center;
-<h3>Draw a Number</h3>
+
+<h2>Draw a Number</h2>
 
 <div id="grid"></div>
 
@@ -58,6 +72,9 @@ text-align: center;
 <button onclick="clearGrid()">Clear</button>
 
 <div id="result">?</div>
+
+<br>
+
 <a href="../index.html">HOME</a>
 
 <script>
