@@ -260,10 +260,14 @@ function recognize()
             best = o;
         }
     }
-
-    document
-        .getElementById("result")
-        .innerText = "認識結果 : " + best;
+    if (output[best]>=0.5)
+    {
+        document.getElementById("result").innerText = best;
+    }
+    else
+    {
+        document.getElementById("result").innerText = "?";
+    }
 }
 
 loadNetwork();
